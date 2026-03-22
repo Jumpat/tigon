@@ -23,7 +23,7 @@ import cv2
 
 ENABLE_PIPELINE_OFFLOAD = os.environ.get('TIGON_ENABLE_OFFLOAD', '1').lower() not in {'0', 'false', 'no'}
 
-# 加载pipeline
+# Load pipeline
 pipeline = TrellisE2EInterleaveResCondPipeline.from_pretrained("./mix_e2e_pipe")
 if ENABLE_PIPELINE_OFFLOAD:
     pipeline.enable_sequential_offload()
@@ -73,47 +73,47 @@ def render_4_views(reps, device: torch.device):
     return rendered_images
 
 def get_seed_input():
-    """获取用户输入的随机数种子"""
-    print("\n--- 随机数种子设置 ---")
-    print("可选选项:")
-    print("1. 输入特定数字作为种子 (如: 42)")
-    print("2. 输入 'r' 或 'random' 使用随机种子")
-    print("3. 直接回车使用默认种子 (42)")
+    """Get random seed from user input"""
+    print("\n--- Random Seed Settings ---")
+    print("Options:")
+    print("1. Enter a specific number as seed (e.g., 42)")
+    print("2. Enter 'r' or 'random' to use a random seed")
+    print("3. Press Enter to use default seed (42)")
     
-    seed_input = input("请输入随机数种子: ").strip()
+    seed_input = input("Please enter random seed: ").strip()
     
     if seed_input.lower() in ['', 'default']:
         seed = 42
-        print(f"使用默认种子: {seed}")
+        print(f"Using default seed: {seed}")
     elif seed_input.lower() in ['r', 'random']:
         seed = random.randint(0, 2**32 - 1)
-        print(f"使用随机种子: {seed}")
+        print(f"Using random seed: {seed}")
     else:
         try:
             seed = int(seed_input)
-            print(f"使用指定种子: {seed}")
+            print(f"Using specified seed: {seed}")
         except ValueError:
-            print("输入无效，使用默认种子: 42")
+            print("Invalid input, using default seed: 42")
             seed = 42
     
     return seed
 
 def get_user_input():
-    """获取用户输入的文本提示和图像路径"""
-    print("\n=== 3D生成参数输入 ===")
+    """Get text prompt and image paths from user"""
+    print("\n=== 3D Generation Input ===")
     
-    # 获取随机数种子
+    # Get seed
     seed = get_seed_input()
     
-    # 获取文本提示
-    text_prompt = input("请输入文本提示 (直接回车跳过文本条件): ").strip()
+    # Get text prompt
+    text_prompt = input("Enter text prompt (press Enter to skip): ").strip()
     if text_prompt.lower() == 'q':
         text_prompt = ''
     
-    # 获取图像路径
+    # Get image paths
     image_paths = []
     while True:
-        image_path = input("请输入图像路径 (输入'q'跳过图像条件，输入'done'结束输入): ").strip()
+        image_path = input("Enter image path (input 'q' to skip, 'done' to finish): ").strip()
         
         if image_path.lower() == 'q':
             image_paths = []
@@ -122,33 +122,29 @@ def get_user_input():
             break
         elif image_path and os.path.exists(image_path):
             image_paths.append(image_path)
-            print(f"已添加图像: {image_path}")
-            # more = input("是否继续添加图像? (y/n): ").strip().lower()
-            # if more not in ['y', 'yes', '是']:
-            #     break
+            print(f"Added image: {image_path}")
             break
         else:
-            print("路径不存在，请重新输入")
+            print("Path does not exist, please re-enter")
     
     return seed, text_prompt, image_paths
 
 def process_generation(seed, text_prompt, image_paths, output_dir="interactive_output"):
-    """处理单次生成任务"""
-    # 创建输出目录
+    """Process a single generation task"""
     os.makedirs(output_dir, exist_ok=True)
     
-    # 处理输入图像
+    # Load input images
     cond_images = []
     if image_paths:
         for img_path in image_paths:
             try:
                 img = Image.open(img_path)
                 cond_images.append(img)
-                print(f"成功加载图像: {img_path}")
+                print(f"Successfully loaded image: {img_path}")
             except Exception as e:
-                print(f"加载图像失败 {img_path}: {e}")
+                print(f"Failed to load image {img_path}: {e}")
     
-    # 确定生成模式
+    # Determine mode
     if text_prompt and cond_images:
         mode = "interleave"
         sub_dir = "interleave"
@@ -156,47 +152,45 @@ def process_generation(seed, text_prompt, image_paths, output_dir="interactive_o
         mode = "text"
         sub_dir = "text"
     elif not text_prompt and cond_images:
-        mode = "image" 
+        mode = "image"
         sub_dir = "image"
     else:
-        print("错误：必须提供文本或图像条件")
+        print("Error: must provide text or image condition")
         return False
     
-    # 创建子目录
     sub_output_dir = os.path.join(output_dir, sub_dir)
     os.makedirs(sub_output_dir, exist_ok=True)
     
-    # 生成唯一标识
+    # Unique ID
     timestamp = str(int(time.time()))
     input_hash = hashlib.md5(f"{seed}_{text_prompt}_{'_'.join(image_paths)}".encode()).hexdigest()[:8]
     unique_id = f"{timestamp}_{input_hash}"
     
-    # 运行生成
-    print(f"开始生成... 模式: {mode}, 种子: {seed}")
+    print(f"Start generation... Mode: {mode}, Seed: {seed}")
     try:
         outputs = pipeline.run(
             text_prompt,
             cond_images,
-            seed=seed,  # 使用用户指定的种子
+            seed=seed,
             sparse_structure_sampler_params={
                 "steps": 35,
                 "cfg_strength": 3,
             },
             formats=['gaussian'],
-            save_cond_path = os.path.join(sub_output_dir, f"{unique_id}_ref.png")
+            save_cond_path=os.path.join(sub_output_dir, f"{unique_id}_ref.png")
         )
         
-        # 保存输入信息
+        # Save input info
         info_file = os.path.join(sub_output_dir, f"{unique_id}_info.txt")
         with open(info_file, 'w', encoding='utf-8') as f:
-            f.write(f"生成ID: {unique_id}\n")
-            f.write(f"模式: {mode}\n")
-            f.write(f"随机数种子: {seed}\n")
-            f.write(f"文本提示: {text_prompt}\n")
-            f.write(f"图像路径: {', '.join(image_paths) if image_paths else '无'}\n")
-            f.write(f"时间: {time.ctime()}\n")
+            f.write(f"ID: {unique_id}\n")
+            f.write(f"Mode: {mode}\n")
+            f.write(f"Seed: {seed}\n")
+            f.write(f"Text prompt: {text_prompt}\n")
+            f.write(f"Image paths: {', '.join(image_paths) if image_paths else 'None'}\n")
+            f.write(f"Time: {time.ctime()}\n")
         
-        # 渲染并保存结果
+        # Render video
         if 'gaussian' in outputs and outputs['gaussian']:
             if getattr(pipeline, 'offload_enabled', False) and torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -204,34 +198,27 @@ def process_generation(seed, text_prompt, image_paths, output_dir="interactive_o
             video = render_utils.render_video(outputs['gaussian'][0], bg_color=(1,1,1))['color']
             video_path = os.path.join(sub_output_dir, f"{unique_id}_3d.mp4")
             
-            # 获取视频尺寸
             height, width = video[0].shape[:2]
-            
-            # 创建视频写入器
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             out = cv2.VideoWriter(video_path, fourcc, 30.0, (width, height))
             
-            # 写入每一帧
             for frame in video:
-                # 如果帧是RGB格式，需要转换为BGR（OpenCV使用BGR）
                 frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 out.write(frame_bgr)
             
-            # 释放视频写入器
             out.release()
-            
-            print(f"✅ 生成完成! 视频保存至: {video_path}")
+            print(f"✅ Generation complete! Video saved to: {video_path}")
 
-            # 渲染4视图
+            # Render 4 views
             reps = {'gaussian': outputs.get('gaussian', [])}
             sample_vis = render_4_views(reps, device=pipeline.execution_device)
 
-            for rep_name, rep_images in sample_vis.items():      # rep_images: [B,V,3,H,W]
+            for rep_name, rep_images in sample_vis.items():
                 B, V = rep_images.shape[0], rep_images.shape[1]
                 for b in range(B):
                     for v in range(V):
-                        img = rep_images[b, v].detach().cpu().numpy()        # [3,H,W], 0..1
-                        img = np.transpose(img, (1, 2, 0))          # [H,W,3]
+                        img = rep_images[b, v].detach().cpu().numpy()
+                        img = np.transpose(img, (1, 2, 0))
                         cv2.imwrite(
                             os.path.join(sub_output_dir, f"{unique_id}_{v}.png"),
                             cv2.cvtColor(to_uint8(img), cv2.COLOR_RGB2BGR)
@@ -240,55 +227,43 @@ def process_generation(seed, text_prompt, image_paths, output_dir="interactive_o
         return True
         
     except Exception as e:
-        print(f"❌ 生成失败: {e}")
+        print(f"❌ Generation failed: {e}")
         return False
 
 def main():
-    """主交互循环"""
+    """Main interactive loop"""
     print("=" * 50)
-    print("TRELLIS 3D生成交互工具")
+    print("TRELLIS 3D Generation Interactive Tool")
     print("=" * 50)
-    print("使用说明:")
-    print("- 输入文本提示或图像路径进行3D生成")
-    print("- 文本提示: 直接输入描述文字")
-    print("- 图像路径: 输入图像文件路径")
-    print("- 随机数种子: 输入数字或使用随机种子")
-    print("- 输入'q'跳过对应条件")
-    print("- 输入'quit'退出程序")
+    print("Instructions:")
+    print("- Enter text prompt or image path for 3D generation")
+    print("- Text: input description directly")
+    print("- Image: input file path")
+    print("- Seed: input number or random")
+    print("- Input 'q' to skip condition")
+    print("- Input 'quit' to exit")
     print("=" * 50)
     
     while True:
         try:
-            # 获取用户输入
             seed, text_prompt, image_paths = get_user_input()
             
-            # 检查退出条件
             if text_prompt.lower() == 'quit' and not image_paths:
-                print("退出程序...")
+                print("Exiting...")
                 break
             
-            # 执行生成
             if text_prompt or image_paths:
                 success = process_generation(seed, text_prompt, image_paths)
                 if success:
-                    print("🎉 生成成功!")
+                    print("🎉 Success!")
             else:
-                print("⚠️  未提供任何输入条件，跳过本次生成")
-            
-            # 询问是否继续
-            # continue_input = input("\n是否继续生成? (y/n): ").strip().lower()
-            # if continue_input not in ['y', 'yes', '是']:
-            #     print("感谢使用!")
-            #     break
+                print("⚠️ No input provided, skipping")
                 
         except KeyboardInterrupt:
-            print("\n\n程序被用户中断")
+            print("\n\nInterrupted by user")
             break
         except Exception as e:
-            print(f"发生错误: {e}")
-            # continue_input = input("是否继续? (y/n): ").strip().lower()
-            # if continue_input not in ['y', 'yes', '是']:
-            #     break
+            print(f"Error occurred: {e}")
 
 if __name__ == "__main__":
     main()
