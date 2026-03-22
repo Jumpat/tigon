@@ -1,0 +1,47 @@
+name: tigon
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - setuptools
+  - wheel
+  - ninja
+  - cmake
+  - git
+  - pytorch=2.4.0
+  - torchvision=0.19.0
+  - torchaudio=2.4.0
+  - pytorch-cuda=11.8
+  - numpy
+  - pandas
+  - pillow
+  - scipy
+  - tqdm
+  - scikit-learn
+  - imageio
+  - opencv
+  - pip:
+      - accelerate==1.13.0
+      - easydict==1.13
+      - ftfy
+      - huggingface-hub==0.36.0
+      - omegaconf
+      - plyfile==1.1.3
+      - regex
+      - rembg==2.0.68
+      - safetensors==0.7.0
+      - spconv-cu118==2.3.8
+      - termcolor
+      - torchmetrics==1.9.0
+      - transformers==4.57.3
+      - trimesh==4.10.0
+      - git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
+      - xformers==0.0.27.post2
+      - onnxruntime==1.23.2
+      - pyvista
+      - pymeshfix
+      - igraph

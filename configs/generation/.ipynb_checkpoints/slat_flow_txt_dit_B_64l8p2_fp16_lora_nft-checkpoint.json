@@ -1,0 +1,142 @@
+{
+    "models": {
+        "denoiser": {
+            "name": "ElasticSLatFlowModel",
+            "args": {
+                "resolution": 64,
+                "in_channels": 8,
+                "out_channels": 8,
+                "model_channels": 768,
+                "cond_channels": 768,
+                "num_blocks": 12,
+                "num_heads": 12,
+                "mlp_ratio": 4,
+                "patch_size": 2,
+                "num_io_res_blocks": 2,
+                "io_block_channels": [128],
+                "pe_mode": "ape",
+                "qk_rms_norm": true,
+                "use_fp16": true,
+                "pretrained_path": "/home/ma-user/work/cenjiazhong/TRELLIS/TRELLIS-text-base/ckpts/slat_flow_txt_dit_B_64l8p2_fp16.safetensors",
+                "freeze_pretrained": true
+            }
+        }
+    },
+    "dataset": {
+        "name": "TextConditionedSLat",
+        "args": {
+            "latent_model": "dinov2_vitl14_reg_slat_enc_swin8_B_64l8_fp16",
+            "min_aesthetic_score": 4.5,
+            "max_num_voxels": 32768,
+            "normalization": {
+                "mean": [
+                    -2.1687545776367188,
+                    -0.004347046371549368,
+                    -0.13352349400520325,
+                    -0.08418072760105133,
+                    -0.5271206498146057,
+                    0.7238689064979553,
+                    -1.1414450407028198,
+                    1.2039363384246826
+                ],
+                "std": [
+                    2.377650737762451,
+                    2.386378288269043,
+                    2.124418020248413,
+                    2.1748552322387695,
+                    2.663944721221924,
+                    2.371192216873169,
+                    2.6217446327209473,
+                    2.684523105621338
+                ]
+            },
+            "pretrained_slat_dec": "/home/ma-user/work/lisikuang/.cache/huggingface/hub/models--microsoft--TRELLIS-image-large/snapshots/25e0d31ffbebe4b5a97464dd851910efc3002d96/ckpts/slat_dec_gs_swin8_B_64l8gs32_fp16",
+            "use_qwen_condition": true
+        }
+    },
+    "trainer": {
+        "name": "TextConditionedSparseFlowMatchingNFTCFGTrainer",
+        "args": {
+            "max_steps": 1000000,
+            "batch_size_per_gpu": 4,
+            "batch_split": 4,
+            "optimizer": {
+                "name": "AdamW",
+                "args": {
+                    "lr": 0.0003,
+                    "weight_decay": 0.0
+                }
+            },
+            "ema_rate": [
+                0.9999
+            ],
+            "fp16_mode": "inflat_all",
+            "fp16_scale_growth": 0.001,
+            "elastic": {
+                "name": "LinearMemoryController",
+                "args": {
+                    "target_ratio": 0.75,
+                    "max_mem_ratio_start": 0.5
+                }
+            },
+            "grad_clip": {
+                "name": "AdaptiveGradClipper",
+                "args": {
+                    "max_norm": 1.0,
+                    "clip_percentile": 95
+                }
+            },
+            "i_log": 50,
+            "i_sample": 100,
+            "i_save": 100,
+            "i_print": 10,
+            "p_uncond": 0.1,
+            "t_schedule": {
+                "name": "logitNormal",
+                "args": {
+                    "mean": 1.0,
+                    "std": 1.0
+                }
+            },
+            "sigma_min": 1e-5,
+            "text_cond_model": "/home/ma-user/work/lisikuang/projects/TRELLIS/clip-vit-large-patch14/",
+            "lora_config": {
+                "enabled": true,
+                "target_patterns": [
+                    "^blocks\\.\\d+\\.self_attn\\.(?:to_qkv|to_out)$",
+                    "^blocks\\.\\d+\\.cross_attn\\.(?:to_q|to_kv|to_out)$"
+                ],
+                "r": 32,
+                "alpha": 64,
+                "adapters": ["default", "old"],
+                "init": "kaiming",
+                "freeze_base": true,
+                "active": "default",
+                "old_ema_rate": 0.999,
+                "dir": "ckpts/lora",
+                "save_all_adapters": true
+
+            },
+            "ckpt": {
+                "save_strategy": "lora_only",
+                "load_strategy": "lora_only",
+                "save_misc_with_lora": true
+            },
+            "nft_cfg": {
+                "sample": {
+                    "steps": 25,
+                    "guidance_scale": 3.0,
+                    "k_per_prompt": 4
+                },
+                "train": {
+                    "num_train_timesteps": 1,
+                    "adv_clip_max": 5.0,
+                    "adv_mode": "symmetric",
+                    "kl_beta": 0.0001,
+                    "random_t": true
+                },
+                "beta": 0.1
+            }
+        }
+    }
+}

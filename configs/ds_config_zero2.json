@@ -1,0 +1,14 @@
+{
+    "zero_optimization": {
+      "stage": 2,
+      "reduce_scatter": true,
+      "overlap_comm": true,
+      "contiguous_gradients": true,
+      "allgather_bucket_size": 500000000,
+      "reduce_bucket_size": 500000000,
+      "ignore_unused_parameters": true
+    },
+    "bf16": { "enabled": true },
+    "fp16": { "enabled": false },
+    "wall_clock_breakdown": false
+  }
