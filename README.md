@@ -76,7 +76,7 @@ Then place the DINOv3 ViT-H/16+ checkpoint at:
 
 ### 3. Compatibility note
 
-The environment used by TIGON is the same as the environments used by TRELLIS and UniLat3D. If you have already prepared either of those environments, you can directly use this repository in most cases.
+The environment used by TIGON is the same as the environments used by [TRELLIS](https://github.com/Microsoft/TRELLIS) and [UniLat3D](https://github.com/UniLat3D/UniLat3D). If you have already prepared either of those environments, you can directly use this repository in most cases.
 
 You still need to make sure the extra components required by TIGON are correctly prepared, especially:
 
