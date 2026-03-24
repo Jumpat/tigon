@@ -6,7 +6,7 @@ Official repository for the CVPR 2026 paper "Text-Image Conditioned 3D Generatio
 
 - Project Page: https://jumpat.github.io/tigon-page/
 - Hugging Face Model: https://huggingface.co/JumpCat/TIGON
-- Paper / arXiv: https://arxiv.org/abs/XXXX.XXXXX
+- Paper / arXiv: https://arxiv.org/abs/2603.21295
 
 ## Authors
 
