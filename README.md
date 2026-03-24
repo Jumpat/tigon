@@ -1,24 +1,17 @@
 # TIGON: Text-Image Conditioned 3D Generation
 
-Official repository for the CVPR 2026 paper "Text-Image Conditioned 3D Generation".
-
-## Links
-
-<p align="center">
+<p align="left">
   <a href="https://jumpat.github.io/tigon-page/"><img src="https://img.shields.io/badge/Project%20Page-TIGON-1f6feb?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Project Page"></a>
   <a href="https://huggingface.co/JumpCat/TIGON"><img src="https://img.shields.io/badge/Hugging%20Face-Model-ffbf00?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face Model"></a>
   <a href="https://arxiv.org/abs/2603.21295"><img src="https://img.shields.io/badge/arXiv-2603.21295-b31b1b?style=for-the-badge&logo=arxiv&logoColor=white" alt="Paper on arXiv"></a>
 </p>
 
-## Video
+Official repository for the CVPR 2026 paper "Text-Image Conditioned 3D Generation".
 
 <p align="center">
-  <video src="assets/supp_video_fast.mp4" controls muted playsinline width="100%"></video>
+  <video src="[assets/supp_video_fast.mp4](https://github.com/user-attachments/assets/43534b8e-e4f6-4d9a-af41-8dd309a848fb)" controls muted playsinline width="100%"></video>
 </p>
 
-<p align="center">
-  <a href="https://github.com/Jumpat/tigon/raw/main/assets/supp_video_fast.mp4">Open or download the supplementary video</a>
-</p>
 
 ## Authors
 
