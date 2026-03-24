@@ -9,9 +9,8 @@
 Official repository for the CVPR 2026 paper "Text-Image Conditioned 3D Generation".
 
 <p align="center">
-  <video src="[assets/supp_video_fast.mp4](https://github.com/user-attachments/assets/43534b8e-e4f6-4d9a-af41-8dd309a848fb)" controls muted playsinline width="100%"></video>
+  <img src="assets/demo.gif" alt="Supplementary video demo" width="100%">
 </p>
-
 
 ## Authors
 
